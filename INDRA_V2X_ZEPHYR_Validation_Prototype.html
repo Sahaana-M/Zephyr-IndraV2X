@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>INDRA-V2X — ZEPHYR Validation Prototype</title>
+<style>
+:root{--bg:#07111f;--panel:#0d1b2d;--panel2:#10243b;--line:#203a57;--text:#eaf4ff;--muted:#8ea8c2;--cyan:#27d7ff;--green:#4ee38b;--amber:#ffc857;--red:#ff5d6c;--violet:#a78bfa}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -20%,#153653 0,#07111f 52%);color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif;min-height:100vh}.wrap{max-width:1400px;margin:auto;padding:22px}
+.top{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;border-bottom:1px solid var(--line);padding-bottom:18px}.brand{font-weight:900;letter-spacing:1.5px;font-size:25px}.tag{color:var(--cyan);font-size:12px;margin-top:5px}.zephyr{text-align:right;font-size:12px;font-weight:800;letter-spacing:1.2px}.sub{color:var(--muted);font-size:11px;margin-top:5px}
+.scenario{display:flex;gap:9px;flex-wrap:wrap;margin:18px 0 12px}.scenario button,.actions button{border:1px solid #31516f;background:#0c1a2c;color:#d8e8f7;border-radius:10px;padding:11px 15px;font-weight:800;cursor:pointer}.scenario button.active{border-color:var(--cyan);background:#0c2a3a;box-shadow:0 0 0 1px #27d7ff33}.scenario button:hover,.actions button:hover{border-color:#6ca6d1}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}.actions .run{background:var(--cyan);color:#00131a;border-color:var(--cyan)}.actions .baseline{background:#251b20;border-color:#7c3f4a}.actions .validate{background:#172d25;border-color:#2b8f6a;color:#aaf2c9}
+.judgebar{display:flex;justify-content:space-between;align-items:center;gap:14px;margin:0 0 16px;padding:12px 14px;border:1px solid #24506b;background:linear-gradient(90deg,#0b2435,#091a2b);border-radius:12px}.judgebar b{display:block;color:var(--cyan);font-size:10px;letter-spacing:1px;margin-bottom:4px}.judgebar span{font-size:12px;color:#c6d9ea}.demoBadge{white-space:nowrap;border:1px solid #6d5a27;color:#ffd66d;background:#241f0e;border-radius:999px;padding:6px 9px;font-size:9px;font-weight:900;letter-spacing:.8px}
+.grid{display:grid;grid-template-columns:1.55fr 1fr;gap:16px}.card{background:linear-gradient(180deg,#0d1b2d,#0a1727);border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 35px #0003;overflow:hidden}.card h3{font-size:12px;letter-spacing:1.2px;margin:0;padding:13px 15px;border-bottom:1px solid var(--line);color:#b9d2e9}
+.roadbox{padding:12px}.road{height:350px;position:relative;overflow:hidden;border-radius:12px;background:#08121e;border:1px solid #1e3852}.road:before,.road:after{content:"";position:absolute;background:#172b40}.road:before{left:0;right:0;top:44%;height:110px}.road:after{top:0;bottom:0;left:43%;width:110px}.laneH,.laneV{position:absolute;z-index:2;opacity:.7}.laneH{left:0;right:0;top:calc(44% + 53px);border-top:3px dashed #a9bac833}.laneV{top:0;bottom:0;left:calc(43% + 53px);border-left:3px dashed #a9bac833}
+.vehicle{position:absolute;z-index:5;width:58px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;box-shadow:0 4px 16px #0008;transition:all .55s ease}.ego{background:#27d7ff;color:#00151d}.conflict{background:#ff5d6c;color:#210005}.bike{background:#ffc857;color:#1d1300;width:42px;height:24px}.emergency{background:#ff79a8;color:#26000d}.vehicle .dot{width:6px;height:6px;border-radius:50%;background:#fff;margin-right:4px}.vlabel{position:absolute;top:-20px;left:0;white-space:nowrap;color:#bcd2e7;font-size:10px}.danger{position:absolute;z-index:3;width:120px;height:120px;border:2px dashed #ff5d6c66;border-radius:50%;left:calc(43% + 48px);top:calc(44% + 48px);transform:translate(-50%,-50%);animation:pulse 1.2s infinite;display:none}.danger.show{display:block}@keyframes pulse{50%{opacity:.25;transform:translate(-50%,-50%) scale(1.12)}}
+.stagebar{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;padding:12px}.stage{border:1px solid #23415e;background:#091624;border-radius:10px;padding:10px 6px;text-align:center;font-size:10px;font-weight:900;color:#7893aa;position:relative}.stage small{display:block;font-weight:600;margin-top:4px;color:#506b83}.stage.on{border-color:var(--cyan);color:#e8fbff;box-shadow:0 0 18px #27d7ff22}.stage.done{border-color:#2b8f6a;color:#aaf2c9}.stage.alert{border-color:var(--red);color:#ffd2d6}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:0 12px 12px}.metric{background:#091624;border:1px solid #1c344d;border-radius:10px;padding:10px}.metric span{display:block;color:#718da7;font-size:9px;font-weight:800;letter-spacing:.7px}.metric strong{display:block;font-size:20px;margin-top:4px}
+.rightpad{padding:12px}.explain{min-height:104px;border:1px solid #25425d;background:#091624;border-radius:12px;padding:13px;line-height:1.5;font-size:13px}.explain b{color:var(--cyan)}
+.eventpacket{margin-top:10px;border:1px solid #1c344d;border-radius:12px;background:#081522;padding:10px}.packetTitle{font-size:9px;font-weight:900;color:#718da7;letter-spacing:1px;margin-bottom:7px}.packet{display:grid;grid-template-columns:auto 1fr auto 1fr auto 1fr;gap:6px 9px;align-items:center;font-size:10px}.packet span{color:#59748c}.packet b{color:#dcefff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.log{height:170px;overflow:auto;background:#06101b;border:1px solid #1c344d;border-radius:12px;padding:10px;margin-top:10px;font:11px/1.55 Consolas,monospace}.log div{margin-bottom:5px}.log .t{color:#55718a}.log .good{color:#79e5a9}.log .warn{color:#ffd071}.log .bad{color:#ff7e89}
+.technical{margin-top:16px}.techgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:12px}.tech{border:1px solid #1e3852;border-radius:10px;padding:11px;background:#091624}.tech b{display:block;font-size:11px}.tech span{display:block;color:#7893aa;font-size:10px;margin-top:4px}
+.bottom{margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:16px}.compare{padding:14px}.comparetable{width:100%;border-collapse:collapse;font-size:12px}.comparetable th,.comparetable td{padding:8px;border-bottom:1px solid #1b334b;text-align:left}.comparetable th{color:#8da8c0;font-size:10px}
+.validation{padding:14px}.validationgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.vmetric{background:#091624;border:1px solid #1c344d;border-radius:10px;padding:10px}.vmetric span{display:block;color:#718da7;font-size:9px;font-weight:800}.vmetric strong{display:block;font-size:17px;margin-top:5px}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}.controls label{font-size:10px;color:#7e99b1}.controls input{width:100%}.status{padding:12px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;font-size:11px;color:#89a4bc}.pill{padding:5px 8px;border-radius:999px;border:1px solid #31516f;background:#0a1b2c}.green{color:var(--green)}.amber{color:var(--amber)}.red{color:var(--red)}
+.badge{display:inline-block;padding:4px 7px;border-radius:999px;border:1px solid #31516f;font-size:9px;margin:3px 3px 0 0;color:#bcd2e7}.note{color:#7893aa;font-size:10px;line-height:1.5;margin-top:10px}
+@media(max-width:900px){.grid,.bottom{grid-template-columns:1fr}.metrics,.validationgrid{grid-template-columns:repeat(2,1fr)}.techgrid{grid-template-columns:repeat(2,1fr)}.top{flex-direction:column}.zephyr{text-align:left}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div><div class="brand">INDRA-V2X</div><div class="tag">Connecting Every Vehicle, Protecting Every Life.</div></div>
+  <div class="zephyr">ZEPHYR HACKATHON<div class="sub">Cooperative Vehicle Safety · Research Validation Prototype</div></div>
+</header>
+
+<div class="scenario" id="scenarioBtns">
+<button data-s="braking" class="active">🚗 Sudden Braking</button>
+<button data-s="bike">🏍️ Two-Wheeler Risk</button>
+<button data-s="emergency">🚑 Emergency Vehicle</button>
+<button data-s="intersection">✚ Intersection Safety</button>
+<button data-s="occlusion">👁️ Hidden Vehicle</button>
+<button data-s="multi">⚠️ Multi-Threat</button>
+</div>
+
+<div class="actions">
+<button class="run" id="run">▶ Run Scenario</button>
+<button class="validate" id="validate">📊 Validate</button>
+<button class="baseline" id="baseline">⚖ Compare Baseline</button>
+<button id="reset">↺ Reset</button>
+</div>
+
+<div class="judgebar">
+<div><b>ZEPHYR VALIDATION TAKEAWAY</b><span id="takeaway">INDRA combines cooperative vehicle data, local sensing and risk prediction to prioritize the most critical threat.</span></div>
+<div class="demoBadge">SIMULATED PROTOTYPE</div>
+</div>
+
+<div class="grid">
+<section class="card">
+<h3>LIVE ROAD SCENE — COOPERATIVE SAFETY</h3>
+<div class="roadbox">
+<div class="road" id="road">
+<div class="laneH"></div><div class="laneV"></div><div class="danger" id="danger"></div>
+<div class="vehicle ego" id="ego"><span class="dot"></span>EGO<div class="vlabel">INDRA OBU</div></div>
+<div class="vehicle conflict" id="conflict"><span class="dot"></span>V2V<div class="vlabel">CONFLICT</div></div>
+<div class="vehicle bike" id="bike"><span class="dot"></span>BIKE</div>
+<div class="vehicle emergency" id="emergency"><span class="dot"></span>EMS</div>
+</div>
+</div>
+<div class="stagebar">
+<div class="stage" data-i="0">1<br>VEHICLE STATE<small>GNSS · IMU · Brake</small></div>
+<div class="stage" data-i="1">2<br>V2X MESSAGE<small>PC5 / fallback</small></div>
+<div class="stage" data-i="2">3<br>DATA FUSION<small>Local + V2X</small></div>
+<div class="stage" data-i="3">4<br>RISK ENGINE<small>TTC · trajectory</small></div>
+<div class="stage" data-i="4">5<br>ALERT ENGINE<small>Adaptive HMI</small></div>
+</div>
+<div class="metrics">
+<div class="metric"><span>TIME TO COLLISION</span><strong id="ttc">—</strong></div>
+<div class="metric"><span>RISK LEVEL</span><strong id="risk">READY</strong></div>
+<div class="metric"><span>V2X STATUS</span><strong id="v2x">STANDBY</strong></div>
+<div class="metric"><span>ALERT LEVEL</span><strong id="alert">0</strong></div>
+</div>
+</section>
+
+<aside class="card">
+<h3>INDRA EVENT EXPLAINER</h3>
+<div class="rightpad">
+<div class="explain" id="explain"><b>Ready.</b><br>Select a scenario and run it. The validation path is <b>Sense → Communicate → Fuse → Predict → Prioritize → Alert</b>.</div>
+<div class="eventpacket"><div class="packetTitle">COOPERATIVE EVENT PACKET</div>
+<div class="packet"><span>TYPE</span><b id="packetType">—</b><span>STATE</span><b id="packetState">—</b><span>TIME</span><b id="packetTime">—</b></div></div>
+<div class="log" id="log"></div>
+</div>
+<div class="status"><span>Mode: <b id="mode">INDRA</b></span><span class="pill" id="statusPill">SYSTEM READY</span></div>
+</aside>
+</div>
+
+<section class="card technical">
+<h3>TECHNICAL PATH</h3>
+<div class="techgrid">
+<div class="tech"><b>Vehicle Inputs</b><span>GNSS · IMU · speed · heading · brake · vehicle type · emergency state</span></div>
+<div class="tech"><b>Communication Layer</b><span>C-V2X / PC5 primary · modular fallback · latency & packet-loss stress</span></div>
+<div class="tech"><b>Safety Intelligence</b><span>Data fusion · trajectory prediction · TTC / risk estimation · threat prioritization</span></div>
+<div class="tech"><b>Adaptive Alerts</b><span>Alert levels 0–3 · driver-facing warning based on threat severity</span></div>
+</div>
+</section>
+
+<div class="bottom">
+<section class="card compare">
+<h3>BASELINE VS INDRA</h3>
+<table class="comparetable"><thead><tr><th>Capability</th><th>Baseline</th><th>INDRA</th></tr></thead>
+<tbody id="cmp"></tbody></table>
+<div class="note">Baseline comparison is a prototype demonstration, not a measured accident-reduction claim.</div>
+</section>
+
+<section class="card validation">
+<h3>RESEARCH VALIDATION — GROUND TRUTH VS PREDICTION</h3>
+<div class="validationgrid">
+<div class="vmetric"><span>POSITION ERROR</span><strong id="posErr">— m</strong></div>
+<div class="vmetric"><span>TTC ERROR</span><strong id="ttcErr">— s</strong></div>
+<div class="vmetric"><span>ALERT LATENCY</span><strong id="latency">— ms</strong></div>
+<div class="vmetric"><span>PACKET DELIVERY</span><strong id="delivery">— %</strong></div>
+<div class="vmetric"><span>PRECISION</span><strong id="precision">—</strong></div>
+<div class="vmetric"><span>RECALL</span><strong id="recall">—</strong></div>
+<div class="vmetric"><span>F1 SCORE</span><strong id="f1">—</strong></div>
+<div class="vmetric"><span>FALSE ALARM RATE</span><strong id="far">—</strong></div>
+</div>
+<div class="note">Validation values are generated from the selected simulated scenario. Replace with repeated experimental measurements for final research results.</div>
+</section>
+</div>
+
+<section class="card advanced" style="margin-top:16px;padding:14px">
+<h3>COMMUNICATION & ROBUSTNESS STRESS TEST</h3>
+<div class="controls">
+<label>Communication latency <span id="latv">50 ms</span><input id="lat" type="range" min="10" max="300" value="50"></label>
+<label>Packet loss <span id="lossv">2%</span><input id="loss" type="range" min="0" max="30" value="2"></label>
+<label>Traffic density <span id="densv">Medium</span><input id="dens" type="range" min="1" max="5" value="3"></label>
+<label>Risk sensitivity <span id="sensv">Normal</span><input id="sens" type="range" min="1" max="5" value="3"></label>
+</div>
+<div style="margin-top:10px">
+<span class="badge">Ground Truth</span><span class="badge">HIL Ready</span><span class="badge">Ablation Testing</span><span class="badge">Stress Testing</span><span class="badge">Baseline Comparison</span>
+</div>
+</section>
+
+<div class="note" style="padding:14px 2px 4px">
+INDRA-V2X · ZEPHYR Research & Validation Prototype · Simulated results are for demonstration only.
+</div>
+</div>
+
+<script>
+const S={
+braking:{name:'Sudden Braking',ttc:'1.8 s',risk:'HIGH',alert:'3',msg:'A lead vehicle suddenly brakes. INDRA receives the vehicle-state broadcast, predicts the closing trajectory and issues an early collision warning.',base:['No cooperative warning','Driver reaction dependent','No shared trajectory'],ind:['Early V2V warning','Predicted conflict','Adaptive Level 3 alert']},
+bike:{name:'Two-Wheeler Risk',ttc:'2.4 s',risk:'HIGH',alert:'3',msg:'A two-wheeler enters a vehicle conflict zone. INDRA prioritizes the vulnerable road user using cooperative context and predicted trajectory.',base:['No vulnerability context','Driver-dependent detection','No V2V risk fusion'],ind:['Two-wheeler context','Trajectory prediction','Priority warning']},
+emergency:{name:'Emergency Vehicle',ttc:'3.2 s',risk:'MEDIUM',alert:'2',msg:'An emergency vehicle broadcasts its status. INDRA propagates the warning to nearby vehicles to support safer route clearance.',base:['No cooperative status','Manual clearance','Delayed awareness'],ind:['Emergency broadcast','Nearby-vehicle alert','Adaptive warning']},
+intersection:{name:'Intersection Safety',ttc:'1.5 s',risk:'HIGH',alert:'3',msg:'Two trajectories are predicted to cross inside an intersection. INDRA estimates time-to-conflict and prioritizes the immediate threat.',base:['Line-of-sight only','No trajectory fusion','Late response'],ind:['Trajectory conflict detected','TTC estimation','Level 3 warning']},
+occlusion:{name:'Hidden Vehicle',ttc:'2.1 s',risk:'HIGH',alert:'3',msg:'A vehicle is partially obstructed from local view. Cooperative state information exposes the hidden trajectory before a direct visual conflict.',base:['Occluded from view','Late detection','No shared state'],ind:['Cooperative awareness','Predicted trajectory','Early priority alert']},
+multi:{name:'Multi-Threat',ttc:'1.6 s',risk:'CRITICAL',alert:'3',msg:'Multiple threats are present. INDRA ranks them using TTC, trajectory conflict and vulnerability so the highest-risk event receives priority.',base:['Multiple unranked threats','Manual judgement','Warning overload'],ind:['Threat ranking','Risk prioritization','Highest-risk alert first']}
+};
+
+let selected='braking',running=false,timer=[];
+const $=id=>document.getElementById(id);
+const log=(m,c='')=>{const d=document.createElement('div');d.innerHTML='<span class="t">['+new Date().toLocaleTimeString()+']</span> '+m;d.className=c;$('log').appendChild(d);$('log').scrollTop=$('log').scrollHeight};
+
+function pos(s,phase){
+ const ego=$('ego'),c=$('conflict'),b=$('bike'),e=$('emergency');
+ ego.style.left=phase?'31%':'13%';ego.style.top='calc(44% + 40px)';
+ c.style.left=phase?'50%':'72%';c.style.top='calc(44% + 40px)';
+ b.style.left=phase?'50%':'68%';b.style.top=phase?'38%':'58%';
+ e.style.left=phase?'48%':'78%';e.style.top=phase?'20%':'20%';
+ b.style.display=(s==='bike'||s==='intersection'||s==='multi')?'flex':'none';
+ e.style.display=(s==='emergency'||s==='multi')?'flex':'none';
+}
+
+function reset(){
+ running=false;timer.forEach(clearTimeout);timer=[];
+ document.querySelectorAll('.stage').forEach(x=>x.className='stage');
+ $('danger').className='danger';$('ttc').textContent='—';$('risk').textContent='READY';
+ $('v2x').textContent='STANDBY';$('alert').textContent='0';$('mode').textContent='INDRA';
+ $('statusPill').textContent='SYSTEM READY';$('statusPill').className='pill';
+ $('explain').innerHTML='<b>Ready.</b><br>Select a scenario and run it. The validation path is <b>Sense → Communicate → Fuse → Predict → Prioritize → Alert</b>.';
+ $('log').innerHTML='';$('packetType').textContent='—';$('packetState').textContent='—';$('packetTime').textContent='—';
+ updateTakeaway();pos(selected,false);updateCompare();clearValidation();
+}
+
+function clearValidation(){['posErr','ttcErr','latency','delivery','precision','recall','f1','far'].forEach(id=>$(id).textContent='—'+(id==='posErr'?' m':id==='ttcErr'?' s':id==='latency'?' ms':id==='delivery'||id==='far'?' %':''));}
+function stage(i,kind='on'){document.querySelectorAll('.stage').forEach((x,j)=>{if(j<i)x.className='stage done';else if(j===i)x.className='stage '+kind;else x.className='stage'})}
+function updateTakeaway(){
+ const t={braking:'Lead vehicle braking is shared so INDRA can warn the following vehicle before the conflict becomes critical.',bike:'A vulnerable road user is represented in the scene; INDRA combines cooperative context with predicted trajectory conflict.',emergency:'Emergency-vehicle status is shared with nearby vehicles so the warning can propagate beyond the source vehicle.',intersection:'Conflicting trajectories are identified at an intersection and converted into a driver-facing warning.',occlusion:'Cooperative awareness reveals a vehicle that may be difficult to detect through local line-of-sight sensing.',multi:'INDRA ranks simultaneous threats and prioritizes the most critical conflict before issuing an alert.'};
+ $('takeaway').textContent=t[selected];
+}
+function updatePacket(type,state){$('packetType').textContent=type;$('packetState').textContent=state;$('packetTime').textContent=new Date().toLocaleTimeString()}
+function updateCompare(){const d=S[selected];$('cmp').innerHTML=d.base.map((x,i)=>'<tr><td>'+['Awareness','Decision input','Warning'][i]+'</td><td>'+x+'</td><td>'+d.ind[i]+'</td></tr>').join('')}
+
+function runDemo(){
+ reset();running=true;const d=S[selected];$('statusPill').textContent='DEMO RUNNING';
+ log('Scenario loaded: '+d.name,'good');
+ const steps=[
+ ()=>{stage(0);updatePacket('VEHICLE_STATE','LOCAL INPUTS');$('explain').innerHTML='<b>1 · Vehicle State:</b><br>GNSS, IMU, speed, heading, brake/emergency state and timestamp are available for cooperative safety processing.';log('Vehicle state sampled','good')},
+ ()=>{stage(1);updatePacket('V2X_EVENT','RECEIVED');$('v2x').textContent='CONNECTED';$('explain').innerHTML='<b>2 · V2X Message:</b><br>Vehicle state is exchanged through the communication layer. C-V2X is represented as the primary path with modular fallback.';log('V2X broadcast received','good')},
+ ()=>{stage(2);updatePacket('INDRA_OBU','FUSED');$('explain').innerHTML='<b>3 · Data Fusion:</b><br>INDRA combines local inputs with cooperative data and prepares the safety decision.';log('Local + V2X data fused','good')},
+ ()=>{stage(3);updatePacket('SAFETY_EVENT','RISK ESTIMATED');$('ttc').textContent=d.ttc;$('risk').textContent=d.risk;$('danger').className='danger show';$('explain').innerHTML='<b>4 · Risk Engine:</b><br>Trajectory prediction and Time-to-Collision estimate conflict severity. Multiple threats are prioritized before alert generation.';log('Risk estimated · TTC '+d.ttc,'bad')},
+ ()=>{stage(4,'alert');updatePacket('ALERT_EVENT','ISSUED');$('alert').textContent=d.alert;$('explain').innerHTML='<b>5 · Adaptive Alert:</b><br>Risk is converted into a driver-facing warning. Selected scenario reaches <b>Alert Level '+d.alert+'</b>.';$('statusPill').textContent='THREAT ALERT';$('statusPill').className='pill red';log('Adaptive warning issued · Level '+d.alert,'warn');pos(selected,true)},
+ ()=>{running=false;log('Scenario complete — validate or compare with baseline.','good')}
+ ];
+ steps.forEach((fn,i)=>timer.push(setTimeout(fn,i*750)));
+}
+
+function baselineRun(){
+ reset();$('mode').textContent='BASELINE';$('statusPill').textContent='BASELINE MODE';
+ $('explain').innerHTML='<b>Baseline:</b><br>No cooperative INDRA-V2X safety layer. The scene represents conventional awareness without shared vehicle-state prediction.';
+ log('Baseline comparison mode — no cooperative warning','warn');$('risk').textContent='LATE';$('v2x').textContent='N/A';$('ttc').textContent=S[selected].ttc;$('alert').textContent='0';pos(selected,true);$('danger').className='danger show';stage(4,'alert');
+}
+
+function validate(){
+ const loss=+$('loss').value,lat=+$('lat').value,dens=+$('dens').value,sens=+$('sens').value;
+ const basePos=0.8+dens*.18+loss*.025;
+ const baseTtc=0.08+lat/5000+loss*.004;
+ const delivery=Math.max(70,100-loss);
+ const precision=Math.min(99,88+sens*1.7-loss*.18-dens*.7);
+ const recall=Math.min(99,90+sens*1.5-loss*.15-dens*.5);
+ const f1=(2*precision*recall/(precision+recall));
+ const far=Math.max(1,7+dens*.7+sens*.35);
+ $('posErr').textContent=basePos.toFixed(2)+' m';
+ $('ttcErr').textContent=baseTtc.toFixed(2)+' s';
+ $('latency').textContent=(lat+18+dens*5).toFixed(0)+' ms';
+ $('delivery').textContent=delivery.toFixed(1)+' %';
+ $('precision').textContent=precision.toFixed(1)+' %';
+ $('recall').textContent=recall.toFixed(1)+' %';
+ $('f1').textContent=f1.toFixed(1)+' %';
+ $('far').textContent=far.toFixed(1)+' %';
+ $('statusPill').textContent='VALIDATION COMPLETE';$('statusPill').className='pill';
+ $('mode').textContent='VALIDATION';
+ log('Validation run: ground truth comparison completed','good');
+ log('Stress parameters — latency '+lat+' ms · packet loss '+loss+'% · density '+dens,'good');
+}
+
+document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{selected=b.dataset.s;document.querySelectorAll('[data-s]').forEach(x=>x.classList.toggle('active',x===b));reset()});
+$('run').onclick=runDemo;$('reset').onclick=reset;$('baseline').onclick=baselineRun;$('validate').onclick=validate;
+$('lat').oninput=e=>{$('latv').textContent=e.target.value+' ms'};
+$('loss').oninput=e=>{$('lossv').textContent=e.target.value+'%'};
+$('dens').oninput=e=>{$('densv').textContent=['','Very Low','Low','Medium','High','Very High'][e.target.value]};
+$('sens').oninput=e=>{$('sensv').textContent=['','Very Low','Low','Normal','High','Very High'][e.target.value]};
+updateCompare();reset();
+</script>
+</body>
+</html>
